@@ -1,6 +1,6 @@
 package nuonuo.icm.automation.util;
 
-import nuonuo.icm.automation.model.ExcelRecord;
+import nuonuo.icm.automation.model.Record;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -18,7 +18,7 @@ import java.util.Set;
  */
 public class ExcelUtil {
 
-    public static void exportExcel(Set<Object> objectSet, String filename) {
+    public static void toExcel(Set<Object> objectSet, String filename) {
         String companyName = "销方企业名称";
         String identifyNumber = "销方纳税人识别号";
         String exceptionNumber = "异常商品数量";
@@ -40,7 +40,7 @@ public class ExcelUtil {
 
             Iterator<Object> iterator = objectSet.iterator();
             while (iterator.hasNext()) {
-                ExcelRecord record = (ExcelRecord) iterator.next();
+                Record record = (Record) iterator.next();
                 Row xssfRow = sheet.createRow(rowIndex++);
                 Cell xssfCell = xssfRow.createCell(0);
                 xssfCell.setCellValue(record.getCompanyName());

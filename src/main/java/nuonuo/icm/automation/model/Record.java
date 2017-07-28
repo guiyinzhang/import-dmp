@@ -5,7 +5,7 @@ import java.util.Set;
 /**
  * Created by liuyang on 2017/6/27.
  */
-public class ExcelRecord {
+public class Record {
     private String companyName;
     private String identifyNumber;
     private Set<String> goodsNumber;

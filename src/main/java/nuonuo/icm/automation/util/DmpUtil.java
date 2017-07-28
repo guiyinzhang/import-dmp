@@ -1,6 +1,6 @@
 package nuonuo.icm.automation.util;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,16 +16,15 @@ public class DmpUtil {
      * @param file
      */
     public static String[] impOracleDmp(String file) {
+        String result[] = new String[3];//执行结果：导入dmp返回值（成功0|失败-1），导入的表格，数据量总和或错误信息；
         String FILE = " file=" + file;
         //导入数据库cmd命令
         String cmd = "imp " + USERNAME + "/" + PASSWORD + "@" + SID
-                + FILE  + LOG+FULL + ROWS
-                + IGNORE + GRANTS + INDEXES;
-        String result[] = new String[3];//执行结果：导入dmp返回值（成功0|失败-1），导入的表格，数据量总和或错误信息；
+                + FILE + FULL + ROWS + IGNORE + GRANTS + INDEXES;
         String outputInfo = "";
-        String analyzeResult[] = new String[2];
+        String tables = "";//表名
+        int size = 0;//导入数据大小
         Process process = null;
-
         int exitCode = 0;
         try {
             // 执行CMD输入导入命令
@@ -44,7 +43,17 @@ public class DmpUtil {
             exitCode = process.waitFor();
             outputInfo += inputThread.getOutputInfo();
             outputInfo += errorThread.getOutputInfo();
-            analyzeResult = analyzeData(outputInfo);
+
+            //从流中获取返回的表明和数据量信息
+            if (inputThread.getAnalyzeResult().getName() != null) {
+                tables += inputThread.getAnalyzeResult().getName();
+                size += inputThread.getAnalyzeResult().getSize();
+            }
+            if (errorThread.getAnalyzeResult().getName() != null) {
+                tables += errorThread.getAnalyzeResult().getName();
+                size += errorThread.getAnalyzeResult().getSize();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -61,16 +70,19 @@ public class DmpUtil {
             }
 
             if (exitCode == SUCCESS) {
-//                System.out.println(SUCCESS_MESSAGE);
-                result[0] = IMP_SUCCESS;//导入成功返回值
-                result[1] = analyzeResult[0];//表名
-                result[2] = analyzeResult[1];//数据总量
+                result[0] = IMP_SUCCESS;
+                result[1] = tables;
+                result[2] = size + "";
             } else {
-//                System.err.println(ERROR_MESSAGE);
-                result[0] = IMP_FAIL;//导入失败返回值
-                result[1] = analyzeResult[0];//表名
-                result[2] = outputInfo;//错误信息
+                result[0] = IMP_FAIL;
+                result[1] = tables;
+                result[2] = outputInfo;
             }
+            System.out.println("-------------------------------------------------------------------------");
+//            for (String s : result) {
+//                System.out.println(s);
+//            }
+            System.out.println("tables are : " + tables + " , sum : " + size);
         }
         return result;
     }
@@ -87,7 +99,7 @@ public class DmpUtil {
         String regex = "\"[A-Za-z_0-9]+\"\\s*.*\\s+\\d+";
         String result = DmpUtil.regexMatch(str, regex, split);
 //        System.out.println("results: "+result);
-        //截取表名
+        //截取表明
         String regexTableName = "\"[A-Za-z_0-9]+\"";
         String tables = DmpUtil.regexMatch(result, regexTableName, split);
 //        System.out.println("tables: "+tables);
@@ -131,5 +143,43 @@ public class DmpUtil {
         return result;
     }
 
+    /**
+     * 读取Log日志文件
+     *
+     * @param file
+     * @return
+     */
+    public static String readLog(String file) {
+        File logFile = new File(file);
+        FileInputStream in = null;
+
+        if (!logFile.exists()) {
+            System.out.println("file is not exist! ");
+            return "";
+        }
+
+        String logString = null;
+        try {
+            in = new FileInputStream(logFile);
+            int size = in.available();
+            byte[] buffer = new byte[size];
+            in.read(buffer);
+            logString = new String(buffer, "GB2312");
+//            System.out.println(logString);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return logString;
+    }
 }
 

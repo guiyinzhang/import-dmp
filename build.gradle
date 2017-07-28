@@ -1,0 +1,22 @@
+group 'nuonuo.icm'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+compileJava.options.encoding = 'UTF-8'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile (
+            'org.apache.poi:poi:3.16',
+            'org.apache.poi:poi-ooxml:3.16',
+            'javax.mail:mail:1.4.7',
+            'commons-net:commons-net:3.3',
+            'mysql:mysql-connector-java:5.1.25'
+    )
+}
